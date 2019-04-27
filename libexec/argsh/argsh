@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
 set -eu -o pipefail
 
-ARGSH_LIBEXEC="$(dirname "$(expand_link "${BASH_SOURCE[0]}")")"
+export ARGSH_SOURCE
+: "${ARGSH_SOURCE:="${BASH_SOURCE[-1]}"}"
 
-# shellcheck source=libs/validators.sh
-source "${ARGSH_LIBEXEC}"/libs/validators.sh
+declare -a _ARGSH_ACTIONS
 
-declare -a _ARGS_ACTIONS
-
-_args_parse() {
+_argsh_parse() {
   awk 'BEGIN { OFS="\t" } {
     match($0, /# args\(([^)|]+)?\|?([^)]+)?\)/, args)
     if (args[0]) {
@@ -28,14 +26,14 @@ _args_parse() {
   }'
 }
 
-_args_declare() {
+_argsh_declare() {
   eval "$(awk 'BEGIN { FS="\t" } $3 {
     printf "export %s%s\n", $3, $4 ? "=" $4 : ""
   }')"
 }
 
 # shellcheck disable=SC2034
-_args_arguments() {
+_argsh_arguments() {
   local -r args="$(awk 'BEGIN { FS="\t"; OFS="\t" } {
     print $1, $2, $3, $5
   }')"
@@ -96,13 +94,13 @@ _args_arguments() {
       continue
     fi
 
-    _ARGS_ACTIONS+=("${cmd}")
+    _ARGSH_ACTIONS+=("${cmd}")
   done
 
   trap - SIGUSR1
 }
 
-_args_usage() {
+_argsh_usage() {
   local -r args="$(awk 'BEGIN { FS="\t"; OFS="\t" } {
     printf "%s\t  %-23s  %s\n", $3,
       ($1 ? "-"$1 : "") ($1 && $2 ? ", " : "") ($2 ? "--"$2 : ""), $6
@@ -120,7 +118,7 @@ _usage() {
   cat <<-EOTXT
 
 Usage:
-  \$(basename "$0") [options]
+  \$(basename "${ARGSH_SOURCE}") [options]
 
 Options:
 $(echo "${args}" | awk -v FS='\t' '$1 { print $2; }')
@@ -132,21 +130,20 @@ EOTXT
 EOF
 }
 
-_args() {
-  local -r bash_source="${BASH_SOURCE[-1]:-${1:?}}"
+_argsh() {
   local -r args="$(
-    grep -E '^# args\(.+\):' "${bash_source}" |
-      _args_parse
+    grep -E '^# args\(.+\):' "${ARGSH_SOURCE}" |
+      _argsh_parse
   )"
 
-  _args_usage \
+  _argsh_usage \
     <<<"${args}"
   [ -n "${*}" ] || {
     _usage
     exit 1
   }
-  _args_declare \
+  _argsh_declare \
     <<<"${args}"
-  _args_arguments "${@}" \
+  _argsh_arguments "${@}" \
     <<<"${args}"
 }

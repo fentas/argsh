@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+set -eu -o pipefail
+
+[ -f "${1:-}" ] || {
+  echo "Help is comming. 🤕"
+  exit 1
+}
+
+export ARGSH_SOURCE
+ARGSH_SOURCE="${1}"
+
+ARGSH_READLINK='true'
+if command -v 'greadlink' >/dev/null; then
+  ARGSH_READLINK='greadlink'
+elif command -v 'readlink' >/dev/null; then
+  ARGSH_READLINK='readlink'
+fi
+
+_argsh_resolve_absolute_root_dir() {
+  local -r cwd="${PWD}"
+  local -r result="${2}"
+  local -r original_shell_options="${-}"
+  local path="${1}"
+  local target_dir
+  local target_name
+
+  # Resolve the parent directory, e.g. /bin => /usr/bin on CentOS (https://github.com/bats-core/bats-core/issues/113).
+  set -P
+
+  while true; do
+    target_dir="${path%/*}"
+    target_name="${path##*/}"
+
+    if [[ "${target_dir}" != "${path}" ]]; then
+      cd "${target_dir}"
+    fi
+
+    if [[ -L "${target_name}" ]]; then
+      path="$("${ARGSH_READLINK}" "${target_name}")"
+    else
+      printf -v "${result}" -- '%s' "${PWD%/*}"
+      set +P "-${original_shell_options}"
+      cd "${cwd}"
+      return
+    fi
+  done
+}
+
+export ARGSH_ROOT
+_argsh_resolve_absolute_root_dir "${0}" 'ARGSH_ROOT'
+
+source "${ARGSH_ROOT}/libexec/argsh/argsh"
+_argsh "${@}"
+
+exec "${@}"
