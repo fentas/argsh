@@ -130,10 +130,10 @@ Usage:
   \$(basename "${ARGSH_SOURCE}") [options]
 
 Options:
-$(echo "${args}" | awk -v FS='\t' '$1 { print $2; }')
+$(echo "${args}" | awk -v FS="${ARGSH_FIELD_SEPERATOR}" '$1 { print $2; }')
 
 Actions:
-$(echo "${args}" | awk -v FS='\t' '! $1 { print $2; }')
+$(echo "${args}" | awk -v FS="${ARGSH_FIELD_SEPERATOR}" '! $1 { print $2; }')
 EOTXT
 }
 EOF
