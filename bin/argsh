@@ -50,6 +50,7 @@ export ARGSH_ROOT
 _argsh_resolve_absolute_root_dir "${0}" 'ARGSH_ROOT'
 
 source "${ARGSH_ROOT}/libexec/argsh/argsh"
-_argsh "${@}"
+# remove first argument (script path)
+_argsh "${@:2}"
 
-exec "${@}"
+exec bash "${@}"

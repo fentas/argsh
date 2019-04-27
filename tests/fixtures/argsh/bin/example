@@ -1,0 +1,38 @@
+#!/usr/bin/env argsh
+# shellcheck shell=bash
+
+# some globals
+: "${PATH_BASE:="$(git rev-parse --show-toplevel)"}"
+
+# setup args
+# argsh(v|value): opt(SCRIPT_VALUE)
+# argsh(description): des(Check this description value)
+# argsh(prefix1): opt(ARGS_PREFIX1)
+# argsh(prefix2): opt(ARGS_PREFIX2)
+# argsh(empty-def): opt(NOOP) def()
+# argsh(execute): des(test output.)
+
+main() {
+  # given actions
+  for ACTION in ${ARGSH_ACTIONS}; do case "${ACTION}" in
+  execute) wubba ;;
+  esac; done
+}
+
+wubba() {
+  echo "wubba lubba dub dub"
+}
+
+has_default() {
+  :
+}
+
+has_value() {
+  :
+}
+
+is_exported() {
+  :
+}
+
+[[ "${0}" != "${BASH_SOURCE[0]}" ]] || main "${@}"

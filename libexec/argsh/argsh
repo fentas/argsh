@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -eu -o pipefail
 
+export ARGSH_ACTIONS
 export ARGSH_SOURCE
 : "${ARGSH_SOURCE:="${BASH_SOURCE[-1]}"}"
 
-declare -a _ARGSH_ACTIONS
 
 _argsh_parse() {
   awk 'BEGIN { OFS="\t" } {
@@ -94,9 +94,10 @@ _argsh_arguments() {
       continue
     fi
 
-    _ARGSH_ACTIONS+=("${cmd}")
+    ARGSH_ACTIONS+="${cmd}"$'\n'
   done
 
+  ARGSH_ACTIONS="${ARGSH_ACTIONS%$'\n'}"
   trap - SIGUSR1
 }
 
