@@ -18,7 +18,7 @@
     "tests": "tests"
   },
   "scripts": {
-    "test": "time docker run -it bats/bats:latest --tap /opt/argsh/tests"
+    "test": "time docker run -it -v $(pwd):/opt/argsh bats/bats:latest --tap /opt/argsh/tests/argsh.bats"
   },
   "keywords": [
     "argsh",
