@@ -5,22 +5,26 @@
 : "${PATH_BASE:="$(git rev-parse --show-toplevel)"}"
 
 # setup args
-# argsh(v|value): opt(SCRIPT_VALUE)
-# argsh(description): des(Check this description value)
-# argsh(prefix1): opt(ARGS_PREFIX1)
-# argsh(prefix2): opt(ARGS_PREFIX2)
-# argsh(empty-def): opt(NOOP) def()
-# argsh(execute): des(test output.)
+# argsh(i|input): opt(INPUT) def(default value) des(set INPUT) val()
+# argsh(v|variable): opt(VARIABLE) def(INPUT) val()
+# argsh(simple-output): des(test output.)
+# argsh(empty-default): opt(EMPTY) def()
+# argsh(print): des(prints variable)
 
 main() {
   # given actions
   for ACTION in ${ARGSH_ACTIONS}; do case "${ACTION}" in
-  execute) wubba ;;
+  simple-output) wubba ;;
+  print) print ;;
   esac; done
 }
 
 wubba() {
   echo "wubba lubba dub dub"
+}
+
+print() {
+  eval "echo \${${VARIABLE}:?}"
 }
 
 has_default() {

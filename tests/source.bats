@@ -24,7 +24,7 @@ load helper
 @test "invalid option prints message and usage instructions" {
   run filter_control_sequences "${ARGSH_TEST}" --invalid-option
   log_on_failure
-  [ "${status}" -eq 1 ]
+  [ "${status}" -eq 2 ]
   [ "${lines[0]}" == "■■ unrecognized option '--invalid-option'" ]
   [ "${lines[1]%% *}" == 'Usage:' ]
 }

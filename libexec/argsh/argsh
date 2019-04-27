@@ -28,7 +28,7 @@ _argsh_parse() {
 
 _argsh_declare() {
   eval "$(awk 'BEGIN { FS="\t" } $3 {
-    printf "export %s%s\n", $3, $4 ? "=" $4 : ""
+    printf "export %s%s\n", $3, $4 ? "='\''" $4 "'\''" : ""
   }')"
 }
 
@@ -37,8 +37,9 @@ _argsh_arguments() {
   local -r args="$(awk 'BEGIN { FS="\t"; OFS="\t" } {
     print $1, $2, $3, $5
   }')"
-  # will be call within 'err' to exit main process
-  trap 'exit 1' SIGUSR1
+  local file_error
+  file_error="$(mktemp)"
+  trap "rm ${file_error}" EXIT
 
   get() {
     local -r param="${1}" col="${2}"
@@ -51,17 +52,21 @@ _argsh_arguments() {
       awk -v FS='\t' "\$${col} { print \$${col} (\$4 ? \":\" : \"\") }" |
       paste -sd ,
   }
-  err() {
-    local -r msg="$(sed 's/^getopt: //')"
+  error() {
+    local -r msg="$(sed 's/^getopt: //' "${file_error}")"
     [ -z "${msg}" ] || {
       _usage "${msg}"
-      kill -SIGUSR1 $$
+      exit 2
     }
   }
-  noop() { cat; }
+  noop() {
+    declare -n ref="${1}"
+    ref="$(cat)"
+  }
 
   local params
-  params="$(getopt -o "$(opts 1)" -l "$(opts 2)" -- "$@" 2> >(err 1>&2) | cat)"
+  params="$(getopt -o "$(opts 1)" -l "$(opts 2)" -- "$@" 2>"${file_error}" || true)"
+  error >&2
 
   eval set -- "${params}"
   local opt val
@@ -89,7 +94,8 @@ _argsh_arguments() {
         val="noop"
       }
       # call val function
-      "${val}" "${opt}" "${cmd}" <<<"${1}" 2> >(err 1>&2) | cat
+      "${val}" "${opt}" "${cmd}" <<<"${1}" 2>"${file_error}"
+      error >&2
       shift
       continue
     fi
@@ -97,8 +103,7 @@ _argsh_arguments() {
     ARGSH_ACTIONS+="${cmd}"$'\n'
   done
 
-  ARGSH_ACTIONS="${ARGSH_ACTIONS%$'\n'}"
-  trap - SIGUSR1
+  ARGSH_ACTIONS="${ARGSH_ACTIONS-%$'\n'}"
 }
 
 _argsh_usage() {
@@ -115,7 +120,7 @@ _usage() {
   local -r message="\${1:-""}"
 
   [ -n "\${message}" ] &&
-    echo -e "\n\033[31m■■\033[0m \033[1m\${message}\033[0m\n"
+    echo -e "\n\033[31m■■\033[0m \033[1m\${message}\033[0m"
   cat <<-EOTXT
 
 Usage:
