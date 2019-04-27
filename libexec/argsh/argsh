@@ -8,7 +8,7 @@ declare -a _ARGSH_ACTIONS
 
 _argsh_parse() {
   awk 'BEGIN { OFS="\t" } {
-    match($0, /# args\(([^)|]+)?\|?([^)]+)?\)/, args)
+    match($0, /# argsh\(([^)|]+)?\|?([^)]+)?\)/, args)
     if (args[0]) {
       $0 = substr($0, RSTART + RLENGTH)
       while(match($0, /[:)] +(opt|def|val|des)\(([^)]*)/, opt)) {
@@ -131,8 +131,9 @@ EOF
 }
 
 _argsh() {
+  # TODO: do not fail of there is no argsh comment
   local -r args="$(
-    grep -E '^# args\(.+\):' "${ARGSH_SOURCE}" |
+    grep -E '^# argsh\(.+\):' "${ARGSH_SOURCE}" |
       _argsh_parse
   )"
 

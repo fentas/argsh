@@ -20,12 +20,12 @@ main() {
 
   # given actions
   for ACTION in "${_ARGS_ACTIONS[@]}"; do case "${ACTION}" in
-  execute) pain ;;
+  execute) wubba ;;
   esac; done
 }
 
-pain() {
-  echo "wavelab dhaba"
+wubba() {
+  echo "wubba lubba dub dub"
 }
 
 has_default() {
