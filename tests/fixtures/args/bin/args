@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+# some globals
+: "${PATH_BASE:="$(git rev-parse --show-toplevel)"}"
+
+# setup args
+# args(v|value): opt(SCRIPT_VALUE)
+# args(description): des(Check this description value)
+# args(prefix1): opt(ARGS_PREFIX1)
+# args(prefix2): opt(ARGS_PREFIX2)
+# args(empty-def): opt(NOOP) def()
+# args(execute): des(Prints "wavelab dhaba")
+
+# load args
+source "${PATH_BASE}"/scripts/libs/args.sh
+
+main() {
+  # execute args
+  _args "${@}"
+
+  # given actions
+  for ACTION in "${_ARGS_ACTIONS[@]}"; do case "${ACTION}" in
+  execute) pain ;;
+  esac; done
+}
+
+pain() {
+  echo "wavelab dhaba"
+}
+
+has_default() {
+  :
+}
+
+has_value() {
+  :
+}
+
+is_exported() {
+  :
+}
+
+[[ "${0}" != "${BASH_SOURCE[0]}" ]] || main "${@}"

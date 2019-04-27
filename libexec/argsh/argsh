@@ -1,0 +1,152 @@
+#!/usr/bin/env bash
+set -eu -o pipefail
+
+ARGSH_LIBEXEC="$(dirname "$(expand_link "${BASH_SOURCE[0]}")")"
+
+# shellcheck source=libs/validators.sh
+source "${ARGSH_LIBEXEC}"/libs/validators.sh
+
+declare -a _ARGS_ACTIONS
+
+_args_parse() {
+  awk 'BEGIN { OFS="\t" } {
+    match($0, /# args\(([^)|]+)?\|?([^)]+)?\)/, args)
+    if (args[0]) {
+      $0 = substr($0, RSTART + RLENGTH)
+      while(match($0, /[:)] +(opt|def|val|des)\(([^)]*)/, opt)) {
+        args[opt[1]] = opt[2] ? opt[2] : "-"
+        $0 = substr($0, RSTART + RLENGTH)
+      }
+      if (length(args[1]) > 1) {
+        args[2] = args[1]
+        args[1] = ""
+      }
+      print args[1], args[2], args["opt"], args["def"], args["val"], args["des"]
+    }
+  } END {
+    print "h\thelp\t\t\t\tPrint help."
+  }'
+}
+
+_args_declare() {
+  eval "$(awk 'BEGIN { FS="\t" } $3 {
+    printf "export %s%s\n", $3, $4 ? "=" $4 : ""
+  }')"
+}
+
+# shellcheck disable=SC2034
+_args_arguments() {
+  local -r args="$(awk 'BEGIN { FS="\t"; OFS="\t" } {
+    print $1, $2, $3, $5
+  }')"
+  # will be call within 'err' to exit main process
+  trap 'exit 1' SIGUSR1
+
+  get() {
+    local -r param="${1}" col="${2}"
+    echo "${args}" |
+      awk -v FS='\t' "\$1 == \"${param}\" || \$2 == \"${param}\" { print \$${col} }"
+  }
+  opts() {
+    local -r col="${1}"
+    echo "${args}" |
+      awk -v FS='\t' "\$${col} { print \$${col} (\$4 ? \":\" : \"\") }" |
+      paste -sd ,
+  }
+  err() {
+    local -r msg="$(sed 's/^getopt: //')"
+    [ -z "${msg}" ] || {
+      _usage "${msg}"
+      kill -SIGUSR1 $$
+    }
+  }
+  noop() { cat; }
+
+  local params
+  params="$(getopt -o "$(opts 1)" -l "$(opts 2)" -- "$@" 2> >(err 1>&2) | cat)"
+
+  eval set -- "${params}"
+  local opt val
+  until [ "${1}" = '--' ]; do
+    cmd="$(sed 's/^-*//' <<<"${1}")"
+    shift
+
+    if [ "${cmd}" == "h" ] || [ "${cmd}" == "help" ]; then
+      _usage
+      exit
+    fi
+
+    opt="$(get "${cmd}" 3)"
+    if [ -n "${opt}" ]; then
+      declare -n ref="${opt}"
+      val="$(get "${cmd}" 4)"
+      [ -n "${val}" ] || {
+        ref=true
+        continue
+      }
+
+      declare -f "${val}" &>/dev/null || {
+        [ "${val}" == "-" ] ||
+          echo -e "[args][warning]\tfunction does not exists '${val}'" 1>&2
+        val="noop"
+      }
+      # call val function
+      "${val}" "${opt}" "${cmd}" <<<"${1}" 2> >(err 1>&2) | cat
+      shift
+      continue
+    fi
+
+    _ARGS_ACTIONS+=("${cmd}")
+  done
+
+  trap - SIGUSR1
+}
+
+_args_usage() {
+  local -r args="$(awk 'BEGIN { FS="\t"; OFS="\t" } {
+    printf "%s\t  %-23s  %s\n", $3,
+      ($1 ? "-"$1 : "") ($1 && $2 ? ", " : "") ($2 ? "--"$2 : ""), $6
+    if ($4) {
+      printf "%s\t %-25s ➜ %s\n", "-", "", $4
+    }
+  }')"
+
+  source /dev/stdin <<-EOF
+_usage() {
+  local -r message="\${1:-""}"
+
+  [ -n "\${message}" ] &&
+    echo -e "\n\033[31m■■\033[0m \033[1m\${message}\033[0m\n"
+  cat <<-EOTXT
+
+Usage:
+  \$(basename "$0") [options]
+
+Options:
+$(echo "${args}" | awk -v FS='\t' '$1 { print $2; }')
+
+Actions:
+$(echo "${args}" | awk -v FS='\t' '! $1 { print $2; }')
+EOTXT
+}
+EOF
+}
+
+_args() {
+  local -r bash_source="${BASH_SOURCE[-1]:-${1:?}}"
+  local -r args="$(
+    grep -E '^# args\(.+\):' "${bash_source}" |
+      _args_parse
+  )"
+
+  _args_usage \
+    <<<"${args}"
+  [ -n "${*}" ] || {
+    _usage
+    exit 1
+  }
+  _args_declare \
+    <<<"${args}"
+  _args_arguments "${@}" \
+    <<<"${args}"
+}
