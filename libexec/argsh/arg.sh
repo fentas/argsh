@@ -110,11 +110,11 @@ _argsh_arguments() {
 
 _argsh_usage() {
   local -r args="$(awk \
-    -v FS="${ARGSH_FIELD_SEPERATOR}" -v FS="${ARGSH_FIELD_SEPERATOR}" '{
-    printf "%s\t  %-23s  %s\n", $3,
+    -v FS="${ARGSH_FIELD_SEPERATOR}" -v OFS="${ARGSH_FIELD_SEPERATOR}" '{
+    printf "%s%s  %-23s  %s\n", $3, OFS,
       ($1 ? "-"$1 : "") ($1 && $2 ? ", " : "") ($2 ? "--"$2 : ""), $6
     if ($4) {
-      printf "%s\t %-25s ➜ %s\n", "-", "", $4
+      printf "-%s %-25s ➜ %s\n", OFS, "", $4
     }
   }')"
 
@@ -130,10 +130,10 @@ Usage:
   \$(basename "${ARGSH_SOURCE}") [options]
 
 Options:
-$(echo "${args}" | awk -v FS="${ARGSH_FIELD_SEPERATOR}" '$1 { print $2; }')
+$(awk -v FS="${ARGSH_FIELD_SEPERATOR}" '$1 { print $2; }' <<<"${args}")
 
 Actions:
-$(echo "${args}" | awk -v FS="${ARGSH_FIELD_SEPERATOR}" '! $1 { print $2; }')
+$(awk -v FS="${ARGSH_FIELD_SEPERATOR}" '! $1 { print $2; }' <<<"${args}")
 EOTXT
 }
 EOF

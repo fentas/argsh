@@ -9,6 +9,8 @@ set -eu -o pipefail
 export ARGSH_SOURCE
 ARGSH_SOURCE="${1}"
 
+: "${ARGSH_SHELL:="bash"}"
+
 ARGSH_READLINK='true'
 if command -v 'greadlink' >/dev/null; then
   ARGSH_READLINK='greadlink'
@@ -49,8 +51,12 @@ _argsh_resolve_absolute_root_dir() {
 export ARGSH_ROOT
 _argsh_resolve_absolute_root_dir "${0}" 'ARGSH_ROOT'
 
-source "${ARGSH_ROOT}/libexec/argsh/argsh"
+source "${ARGSH_ROOT}/libexec/argsh/arg.sh"
+source "${ARGSH_ROOT}/libexec/argsh/libs/validators.sh"
+
+BASH_SOURCE[1]="${ARGSH_SOURCE}"
+
 # remove first argument (script path)
 _argsh "${@:2}"
 
-exec bash "${@}"
+exec "${ARGSH_SHELL}" "${@}"
