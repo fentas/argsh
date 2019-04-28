@@ -1,6 +1,6 @@
 {
   "name": "argsh",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Bash arguments manager",
   "homepage": "https://github.com/fentas/argsh#readme",
   "license": "MIT",
