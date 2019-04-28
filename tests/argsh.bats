@@ -48,8 +48,8 @@ fixtures argsh
 }
 
 @test "overwrite env with empty default value" {
-  export INPUT="Lorem Ipsum"
-  run "${FIXTURE_ROOT}"/bin/example --print
+  export EMPTY="Lorem Ipsum"
+  run "${FIXTURE_ROOT}"/bin/example -v EMPTY --print
   log_on_failure
   [ $status -eq 0 ]
   [ "${lines[0]}" == "" ]
