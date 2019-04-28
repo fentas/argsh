@@ -51,10 +51,9 @@ _argsh_resolve_absolute_root_dir() {
 export ARGSH_ROOT
 _argsh_resolve_absolute_root_dir "${0}" 'ARGSH_ROOT'
 
-source "${ARGSH_ROOT}/libexec/argsh/arg.sh"
-source "${ARGSH_ROOT}/libexec/argsh/libs/validators.sh"
-
-BASH_SOURCE[1]="${ARGSH_SOURCE}"
+export ARGSH_LIBEXEC="${ARGSH_ROOT}/libexec/argsh"
+source "${ARGSH_LIBEXEC}/arg.sh"
+source "${ARGSH_LIBEXEC}/validator.sh"
 
 # remove first argument (script path)
 _argsh "${@:2}"

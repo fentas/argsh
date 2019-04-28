@@ -1,15 +1,18 @@
 #!/usr/bin/env argsh
 # shellcheck shell=bash
+# argsh shell=bash
+# argsh source=../libs/val1.sh
 
 # some globals
 : "${PATH_BASE:="$(git rev-parse --show-toplevel)"}"
 
 # setup args
-# argsh(i|input): opt(INPUT) def(default value) des(set INPUT) val()
-# argsh(v|variable): opt(VARIABLE) def(INPUT) val()
+# argsh(i|input): env(INPUT) def(default value) des(set INPUT) val()
+# argsh(v|variable): env(VARIABLE) def(INPUT) val()
 # argsh(simple-output): des(test output.)
-# argsh(empty-default): opt(EMPTY) def()
+# argsh(empty-default): env(EMPTY) def()
 # argsh(print): des(prints variable)
+
 
 main() {
   # given actions

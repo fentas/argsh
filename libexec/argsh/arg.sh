@@ -1,36 +1,22 @@
 #!/usr/bin/env bash
 set -eu -o pipefail
 
-export ARGSH_ACTIONS
 export ARGSH_SOURCE
+export ARGSH_FIELD_SEPERATOR
+export ARGSH_ACTIONS
 : "${ARGSH_SOURCE:="${BASH_SOURCE[-1]}"}"
-
-: "${ARGSH_FIELD_SEPERATOR:=""}"
+: "${ARGSH_FIELD_SEPERATOR:=""}" # \u001E - Record Separator
 
 _argsh_parse() {
-  awk -v OFS="${ARGSH_FIELD_SEPERATOR}" '{
-    match($0, /# argsh\(([^)|]+)?\|?([^)]+)?\)/, args)
-    if (args[0]) {
-      $0 = substr($0, RSTART + RLENGTH)
-      while(match($0, /[:)] +(opt|def|val|des)\(([^)]*)/, opt)) {
-        args[opt[1]] = opt[2] ? opt[2] : "-"
-        $0 = substr($0, RSTART + RLENGTH)
-      }
-      if (length(args[1]) > 1) {
-        args[2] = args[1]
-        args[1] = ""
-      }
-      print args[1], args[2], args["opt"], args["def"], args["val"], args["des"]
-    }
-  } END {
-    print "h", "help", "", "", "", "", "Print help."
-  }'
+  awk -f "${ARGSH_LIBEXEC}"/libs/parse.awk "${1}"
 }
 
 _argsh_declare() {
-  eval "$(awk -v FS="${ARGSH_FIELD_SEPERATOR}" '$3 {
-    printf "export %s%s\n", $3, $4 ? "='\''" $4 "'\''" : ""
-  }')"
+  eval "$(awk -f "${ARGSH_LIBEXEC}"/libs/declare.awk)"
+}
+
+_argsh_usage() {
+  source /dev/stdin < <(awk -f "${ARGSH_LIBEXEC}/libs/usage.awk")
 }
 
 # shellcheck disable=SC2034
@@ -91,7 +77,7 @@ _argsh_arguments() {
       }
 
       declare -f "${val}" &>/dev/null || {
-        [ "${val}" == "-" ] ||
+        [ "${val}" == "" ] ||
           echo -e "[args][warning]\tfunction does not exists '${val}'" 1>&2
         val="noop"
       }
@@ -108,52 +94,18 @@ _argsh_arguments() {
   ARGSH_ACTIONS="${ARGSH_ACTIONS-%$'\n'}"
 }
 
-_argsh_usage() {
-  local -r args="$(awk \
-    -v FS="${ARGSH_FIELD_SEPERATOR}" -v OFS="${ARGSH_FIELD_SEPERATOR}" '{
-    printf "%s%s  %-23s  %s\n", $3, OFS,
-      ($1 ? "-"$1 : "") ($1 && $2 ? ", " : "") ($2 ? "--"$2 : ""), $6
-    if ($4) {
-      printf "-%s %-25s ➜ %s\n", OFS, "", $4
-    }
-  }')"
-
-  source /dev/stdin <<-EOF
-_usage() {
-  local -r message="\${1:-""}"
-
-  [ -n "\${message}" ] &&
-    echo -e "\n\033[31m■■\033[0m \033[1m\${message}\033[0m"
-  cat <<-EOTXT
-
-Usage:
-  \$(basename "${ARGSH_SOURCE}") [options]
-
-Options:
-$(awk -v FS="${ARGSH_FIELD_SEPERATOR}" '$1 { print $2; }' <<<"${args}")
-
-Actions:
-$(awk -v FS="${ARGSH_FIELD_SEPERATOR}" '! $1 { print $2; }' <<<"${args}")
-EOTXT
-}
-EOF
-}
-
 _argsh() {
   # TODO: do not fail of there is no argsh comment
-  local -r args="$(
-    grep -E '^# argsh\(.+\):' "${ARGSH_SOURCE}" |
-      _argsh_parse
-  )"
+  local -r args="$(_argsh_parse "${ARGSH_SOURCE}")"
 
+  _argsh_declare \
+    <<<"${args}"
   _argsh_usage \
     <<<"${args}"
   [ -n "${*}" ] || {
     _usage
     exit 1
   }
-  _argsh_declare \
-    <<<"${args}"
   _argsh_arguments "${@}" \
     <<<"${args}"
 }
