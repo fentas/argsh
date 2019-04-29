@@ -47,10 +47,10 @@ fixtures argsh
   [ "${lines[0]}" == "Lorem Ipsum" ]
 }
 
-@test "overwrite env with empty default value" {
+@test "do not overwrite env with empty default value" {
   export EMPTY="Lorem Ipsum"
   run "${FIXTURE_ROOT}"/bin/example -v EMPTY --print
   log_on_failure
   [ $status -eq 0 ]
-  [ "${lines[0]}" == "" ]
+  [ "${lines[0]}" == "Lorem Ipsum" ]
 }
