@@ -3,20 +3,16 @@
 
 _argsh_is_file() {
   local -n opt="${2}"
-  local -r file="$(cat)"
-  [ -f "${file}" ] || {
+  [ -f "${opt}" ] || {
     echo "[ ${1} ] needs to be a file." 1>&2
-    return
+    return 127
   }
-  opt="${file}"
 }
 
 _argsh_is_directory() {
   local -n opt="${2}"
-  local -r path="$(cat)"
-  [ -d "${path}" ] || {
+  [ -d "${opt}" ] || {
     echo "[ ${1} ] needs to be a directory." 1>&2
-    return
+    return 127
   }
-  opt="${path}"
 }

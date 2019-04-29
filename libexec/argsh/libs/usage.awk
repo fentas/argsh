@@ -16,7 +16,7 @@ BEGIN {
   print \
     "_usage() {",
     "local -r message=\"${1:-}\"",
-    "[ -z \"${message}\" ] || echo -e \"\n\033[31m■■\033[0m \033[1m${message}\033[0m\"",
+    "[ -z \"${message}\" ] || echo -e \"\n\033[31m■■\033[0m \033[1m${message}\033[0m\n\"",
     "cat <<-EOTXT",
     "Usage:"
   printf "  %s [options]\n", filename

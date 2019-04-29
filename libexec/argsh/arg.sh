@@ -43,8 +43,7 @@ _argsh_arguments() {
 
   local params getopt error; error="$(_argsh_error)"
   getopt="$(awk -f "${ARGSH_LIBEXEC}"/libs/getopt.awk <<<"${args}")"
-  params="$($getopt -- "$@" 2>"${error}" || true)"
-  _argsh_error "${error}"
+  params="$($getopt -- "$@" 2>"${error}" || _argsh_error "${error}")"
 
   eval set -- "${params}"
   local cmd opt val
@@ -80,8 +79,7 @@ _argsh_validators() {
       [ "${val}" == "" ] || echo -e "[argsh][warning]\tfunction does not exists '${val}'" 1>&2
       continue
     }
-    "${val}" "${cmd}" "${opt}" 2>"${error}"
-    _argsh_error "${error}"
+    "${val}" "${cmd}" "${opt}" 2>"${error}" || _argsh_error "${error}"
   done < <(awk -f "${ARGSH_LIBEXEC}"/libs/validators.awk)
 }
 
