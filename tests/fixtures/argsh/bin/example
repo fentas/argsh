@@ -1,7 +1,6 @@
 #!/usr/bin/env argsh
 # shellcheck shell=bash
-# argsh shell=bash
-# argsh source=../libs/val1.sh
+# argsh shell=bash source=../vals/shared.sh
 
 # some globals
 : "${PATH_BASE:="$(git rev-parse --show-toplevel)"}"

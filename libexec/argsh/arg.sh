@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2064
 set -eu -o pipefail
 
 export ARGSH_SOURCE
@@ -6,6 +7,18 @@ export ARGSH_FIELD_SEPERATOR
 export ARGSH_ACTIONS
 : "${ARGSH_SOURCE:="${BASH_SOURCE[-1]}"}"
 : "${ARGSH_FIELD_SEPERATOR:=""}" # \u001E - Record Separator
+
+_argsh_error() {
+  [ -n "${1-}" ] || {
+    file="$(mktemp --suffix ".argsh")"; trap "rm $file" EXIT; echo "${file}"
+    return
+  }
+  local -r msg="$(sed 's/^getopt: //' "${1:?}")"
+  [ -z "${msg}" ] || {
+    _usage "${msg}" >&2
+    exit 2
+  }
+}
 
 _argsh_settings() {
   awk -f "${ARGSH_LIBEXEC}"/libs/settings.awk "${1}"
@@ -23,28 +36,15 @@ _argsh_usage() {
   source /dev/stdin < <(awk -f "${ARGSH_LIBEXEC}/libs/usage.awk")
 }
 
-# shellcheck disable=SC2034,SC2064,SC2154
+# shellcheck disable=SC2034,SC2154
 _argsh_arguments() {
   local -r args="$(cat)"
   local file_error
-  file_error="$(mktemp)"
-  trap "rm ${file_error}" EXIT
 
-  error() {
-    local -r msg="$(sed 's/^getopt: //' "${file_error}")"
-    [ -z "${msg}" ] || {
-      _usage "${msg}"
-      exit 2
-    }
-  }
-  noop() {
-    declare -n ref="${1}"
-    ref="$(cat)"
-  }
-
-  local params getopt; getopt="$(awk -f "${ARGSH_LIBEXEC}"/libs/getopt.awk <<<"${args}")"
-  params="$($getopt -- "$@" 2>"${file_error}" || true)"
-  error >&2
+  local params getopt error; error="$(_argsh_error)"
+  getopt="$(awk -f "${ARGSH_LIBEXEC}"/libs/getopt.awk <<<"${args}")"
+  params="$($getopt -- "$@" 2>"${error}" || true)"
+  _argsh_error "${error}"
 
   eval set -- "${params}"
   local cmd opt val
@@ -59,25 +59,30 @@ _argsh_arguments() {
 
     if [ -n "${opt}" ]; then
       declare -n ref="${opt}"
-      [ -n "${val}" ] || { ref=true; continue; }
-
-      declare -f "${val}" &>/dev/null || {
-        [ "${val}" == "" ] ||
-          echo -e "[args][warning]\tfunction does not exists '${val}'" 1>&2
-        val="noop"
-      }
-
-      # call val function
-      "${val}" "${cmd}" "${opt}" <<<"${1}" 2>"${file_error}"
-      error >&2
-      shift
-      continue
+      ref=true
+      [ -n "${val}" ] || continue
+      ref="${1}"
+      shift; continue
     fi
 
     ARGSH_ACTIONS+="${cmd}"$'\n'
   done
 
   ARGSH_ACTIONS="${ARGSH_ACTIONS-%$'\n'}"
+}
+
+_argsh_validators() {
+  local val cmd opt error; error="$(_argsh_error)"
+  while IFS= read -r variables; do
+    eval "${variables}"
+
+    declare -f "${val}" &>/dev/null || {
+      [ "${val}" == "" ] || echo -e "[argsh][warning]\tfunction does not exists '${val}'" 1>&2
+      continue
+    }
+    "${val}" "${cmd}" "${opt}" 2>"${error}"
+    _argsh_error "${error}"
+  done < <(awk -f "${ARGSH_LIBEXEC}"/libs/validators.awk)
 }
 
 _argsh() {
@@ -93,5 +98,7 @@ _argsh() {
     exit 1
   }
   _argsh_arguments "${@}" \
+    <<<"${args}"
+  _argsh_validators \
     <<<"${args}"
 }

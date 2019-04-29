@@ -56,7 +56,7 @@ export ARGSH_LIBEXEC="${ARGSH_ROOT}/libexec/argsh"
 source "${ARGSH_LIBEXEC}/arg.sh"
 source "${ARGSH_LIBEXEC}/validator.sh"
 
-for setting in $(_argsh_settings "${ARGSH_SOURCE}"); do case "${setting}" in
+while IFS= read -r setting; do case "${setting}" in
   shell=*)
     ARGSH_SHELL="${setting:6}"
     echo "${ARGSH_SHELL}" | grep -qE '^(bash|sh|zsh)$' || {
@@ -70,7 +70,7 @@ for setting in $(_argsh_settings "${ARGSH_SOURCE}"); do case "${setting}" in
     }
     source "${path}"
   ;;
-esac; done
+esac; done < <(_argsh_settings "${ARGSH_SOURCE}")
 
 # remove first argument (script path)
 _argsh "${@:2}"
