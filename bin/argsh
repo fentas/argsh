@@ -6,11 +6,6 @@ set -eu -o pipefail
   exit 1
 }
 
-export ARGSH_SOURCE
-ARGSH_SOURCE="${1}"
-
-: "${ARGSH_SHELL:="bash"}"
-
 ARGSH_READLINK='true'
 if command -v 'greadlink' >/dev/null; then
   ARGSH_READLINK='greadlink'
@@ -50,10 +45,32 @@ _argsh_resolve_absolute_root_dir() {
 
 export ARGSH_ROOT
 _argsh_resolve_absolute_root_dir "${0}" 'ARGSH_ROOT'
+export ARGSH_SHELL
+ARGSH_SHELL="bash"
+export ARGSH_SOURCE
+ARGSH_SOURCE="${1}"
+export ARGSH_ROOT_SOURCE
+ARGSH_ROOT_SOURCE="$(realpath "$(dirname "${ARGSH_SOURCE}")")"
 
 export ARGSH_LIBEXEC="${ARGSH_ROOT}/libexec/argsh"
 source "${ARGSH_LIBEXEC}/arg.sh"
 source "${ARGSH_LIBEXEC}/validator.sh"
+
+for setting in $(_argsh_settings "${ARGSH_SOURCE}"); do case "${setting}" in
+  shell=*)
+    ARGSH_SHELL="${setting:6}"
+    echo "${ARGSH_SHELL}" | grep -qE '^(bash|sh|zsh)$' || {
+      _error "argsh does not support wanted shell: ${ARGSH_SHELL}"
+    }
+  ;;
+  source=*)
+    path="$(realpath "${ARGSH_ROOT_SOURCE}/${setting:7}")"
+    [ -f "${path}" ] || {
+      _error "source path does not exist: ${path}"
+    }
+    source "${path}"
+  ;;
+esac; done
 
 # remove first argument (script path)
 _argsh "${@:2}"

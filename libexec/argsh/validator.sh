@@ -1,16 +1,22 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2034
 
-_args_is_file() {
-  local -n opt="${1}"
-  local -r path_file="$(cat)"
-  [ -f "${path_file}" ] || {
-    echo "[ ${2} ] needs to be a file." 1>&2
+_argsh_is_file() {
+  local -n opt="${2}"
+  local -r file="$(cat)"
+  [ -f "${file}" ] || {
+    echo "[ ${1} ] needs to be a file." 1>&2
     return
   }
-  opt="${path_file}"
+  opt="${file}"
 }
 
-_args_array() {
-  IFS="," read -r -a "${1}" <<<"$(cat)"
-  unset IFS
+_argsh_is_directory() {
+  local -n opt="${2}"
+  local -r path="$(cat)"
+  [ -d "${path}" ] || {
+    echo "[ ${1} ] needs to be a directory." 1>&2
+    return
+  }
+  opt="${path}"
 }

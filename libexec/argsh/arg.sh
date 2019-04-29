@@ -7,6 +7,10 @@ export ARGSH_ACTIONS
 : "${ARGSH_SOURCE:="${BASH_SOURCE[-1]}"}"
 : "${ARGSH_FIELD_SEPERATOR:=""}" # \u001E - Record Separator
 
+_argsh_settings() {
+  awk -f "${ARGSH_LIBEXEC}"/libs/settings.awk "${1}"
+}
+
 _argsh_parse() {
   awk -f "${ARGSH_LIBEXEC}"/libs/parse.awk "${1}"
 }
@@ -64,7 +68,7 @@ _argsh_arguments() {
       }
 
       # call val function
-      "${val}" "${opt}" "${cmd}" <<<"${1}" 2>"${file_error}"
+      "${val}" "${cmd}" "${opt}" <<<"${1}" 2>"${file_error}"
       error >&2
       shift
       continue

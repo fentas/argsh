@@ -3,7 +3,7 @@
 function format() {
   opt = sprintf("  %-23s  %s", ($1 ? "-"$1 : "") ($1 && $2 ? ", " : "") ($2 ? "--"$2 : ""), $6)
   if ($4) {
-    opt = opt sprintf("\n%-26s ➜ %s", "", $4)
+    opt = opt sprintf("\n%-24s ➜ %s", "", $4)
   }
   return opt
 }
