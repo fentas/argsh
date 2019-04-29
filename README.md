@@ -3,7 +3,7 @@
 ---
 
 # argsh
-[![Latest release](https://img.shields.io/github/release/fentas/argsh.svg)](https://github.com/fentas/argsh/releases/v0.3.1)
+[![Latest release](https://img.shields.io/github/release/fentas/argsh.svg)](https://github.com/fentas/argsh/releases/latest)
 [![npm package](https://img.shields.io/npm/v/argsh.svg)](https://www.npmjs.com/package/argsh)
 [![License](https://img.shields.io/github/license/fentas/argsh.svg)](https://github.com/fentas/argsh/blob/master/LICENSE)
 [![Continuous integration status for Linux and macOS](https://img.shields.io/travis/fentas/argsh/master.svg?label=travis%20build)](https://travis-ci.org/fentas/argsh)
