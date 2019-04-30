@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1090
 set -eu -o pipefail
 
 [ -f "${1:-}" ] || {
@@ -56,23 +57,33 @@ export ARGSH_LIBEXEC="${ARGSH_ROOT}/libexec/argsh"
 source "${ARGSH_LIBEXEC}/arg.sh"
 source "${ARGSH_LIBEXEC}/validator.sh"
 
+args=("${@}")
+
 while IFS= read -r setting; do case "${setting}" in
   shell=*)
     ARGSH_SHELL="${setting:6}"
-    echo "${ARGSH_SHELL}" | grep -qE '^(bash|sh|zsh)$' || {
-      _error "argsh does not support wanted shell: ${ARGSH_SHELL}"
+    command -v "${ARGSH_SHELL}" &>/dev/null || {
+      echo "wanted argsh shell not found: ${ARGSH_SHELL}" >&2
+      exit 1
     }
   ;;
   source=*)
     path="$(realpath "${ARGSH_ROOT_SOURCE}/${setting:7}")"
     [ -f "${path}" ] || {
-      _error "source path does not exist: ${path}"
+      echo "source path does not exist: ${path}" >&2
+      exit 1
     }
     source "${path}"
+  ;;
+  pass=*)
+    case "${setting:5}" in
+    "file") args=("${1}") ;;
+    "args") args=("${@:2}") ;;
+    "none") args=() ;;
+    esac
   ;;
 esac; done < <(_argsh_settings "${ARGSH_SOURCE}")
 
 # remove first argument (script path)
 _argsh "${@:2}"
-
-exec "${ARGSH_SHELL}" "${@}"
+exec "${ARGSH_SHELL}" "${args[@]}"

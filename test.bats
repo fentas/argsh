@@ -1,6 +1,11 @@
-#!/usr/bin/env bats
+#!/usr/bin/env argsh
+# shellcheck shell=bats disable=SC2154
+# argsh shell=bats pass=file
 
-load helper
+# argsh(e|executable): env(ARGSH_TEST) def(./tests/fixtures/argsh/bin/example) des(executable for argsh integration test.) val(_argsh_is_file)
+# argsh(run):          des(test executable for argsh integration.)
+
+load tests/helper
 
 @test "${ARGSH_TEST}: is executable" {
   run command -v "${ARGSH_TEST}"
