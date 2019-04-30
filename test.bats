@@ -2,7 +2,7 @@
 # shellcheck shell=bats disable=SC2154
 # argsh shell=bats pass=file
 
-# argsh(e|executable): env(ARGSH_TEST) def(./tests/fixtures/argsh/bin/example) des(executable for argsh integration test.) val(_argsh_is_file)
+# argsh(e|executable): env(ARGSH_TEST) def(./tests/fixtures/argsh/bin/example) des(executable for argsh integration test.) val(_argsh_is_executable)
 # argsh(run):          des(test executable for argsh integration.)
 
 load tests/helper

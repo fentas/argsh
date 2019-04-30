@@ -16,3 +16,11 @@ _argsh_is_directory() {
     return 127
   }
 }
+
+_argsh_is_executable() {
+  local -n opt="${2}"
+  command -v "${opt}" &>/dev/null || {
+    echo "[ ${1} ] needs to be executable." 1>&2
+    return 1
+  }
+}
