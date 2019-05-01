@@ -9,3 +9,10 @@ $3 {
     printf ": \"${%s:=\"%s\"}\"\n", $3, $4
   }
 }
+$4 ~ /^!!/ {
+  $4 = substr($4, 3)
+  call = call sprintf("! command -v \"%s\" &>/dev/null || \"%s\" \"%s\" \"%s\"\n", $4, $4, $2, $3)
+}
+END {
+  print call
+}

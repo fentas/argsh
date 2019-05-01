@@ -4,8 +4,7 @@ load helper
 fixtures argsh
 
 @test "check args integration" {
-  ARGSH_TEST="${FIXTURE_ROOT}"/bin/example \
-    run bats "${BATS_TEST_DIRNAME}/source.bats"
+  run "${PATH_BASE}/test.bats" -e "${FIXTURE_ROOT}"/bin/example
   log_on_failure
   [ $status -eq 0 ]
 }

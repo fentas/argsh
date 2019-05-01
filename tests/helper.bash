@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+: "${PATH_BASE:="$(git rev-parse --show-toplevel)"}"
+
 fixtures() {
   FIXTURE_ROOT="${BATS_TEST_DIRNAME}/fixtures/${1}"
   RELATIVE_FIXTURE_ROOT="${FIXTURE_ROOT#${BATS_CWD}/}"
