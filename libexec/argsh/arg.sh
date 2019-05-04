@@ -10,7 +10,7 @@ export ARGSH_ACTIONS
 
 _argsh_error() {
   [ -n "${1-}" ] || {
-    file="$(mktemp --suffix ".argsh")"; trap "rm $file" EXIT; echo "${file}"
+    file="$(mktemp)"; trap "rm $file" EXIT; echo "${file}"
     return
   }
   local -r msg="$(sed 's/^getopt: //' "${1:?}")"
