@@ -11,12 +11,63 @@
 Create simple and short shell (bash) scripts with ease. `argsh` takes away the
 tedious work to create your own argument parser and keeps your shell usage at bay.
 
-## Quick start
-
-Describe your arguments and `argsh` does the rest.
-
+## Install argsh
+* to be able to use argsh scripts on your system, it makes sense to install it globally
 ```sh
-# coming soon
+# manually
+git clone https://github.com/fentas/argsh.git
+cd argsh/bin
+suod ln -sf argsh /usr/local/bin
+```
+
+## Quick start
+* Describe your arguments and `argsh` does the rest.
+
+### script template
+```sh
+touch <your-script-name>
+sudo chmod +x <your-script-name>
+```
+
+### create argsh script from template
+```sh
+#!/usr/bin/env argsh
+set -eu -o pipefail
+
+# --- OPTIONS
+# argsh(t|test-option): env(TEST_OPTION) def(false) des(A test option.) val()
+
+# --- ACTIONS
+# argsh(T|test-action):   des(A test action.)
+
+# --- ACTIONS
+
+# --- PATHS
+: "${PATH_BASE:="$(git rev-parse --show-toplevel)"}"
+
+# --- VARIABLES
+
+# --- IMPORTS
+
+# --- MAIN
+main() {
+  # dependencies
+
+  # actions
+  for ACTION in ${ARGSH_ACTIONS}; do case "${ACTION}" in
+    T|test-action)  test_action ;;
+  esac; done
+}
+
+# --- FUNCTIONS
+test_action() {
+  echo "$TEST_OPTION"
+}
+
+# --- VALIDATORS
+
+# --- RUN
+[[ "${0}" != "${BASH_SOURCE[0]}" ]] || main "${@}"
 ```
 
 ## Include `argsh` into your tests
