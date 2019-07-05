@@ -1,4 +1,4 @@
-#!/usr/bin/awk -f
+#!/usr/bin/env awk -f
 
 function format() {
   opt = sprintf("  %-23s  %s", ($1 ? "-"$1 : "") ($1 && $2 ? ", " : "") ($2 ? "--"$2 : ""), $6)

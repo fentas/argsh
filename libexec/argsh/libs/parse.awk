@@ -1,4 +1,4 @@
-#!/usr/bin/awk -f
+#!/usr/bin/env awk -f
 
 BEGIN {
   OFS=ENVIRON["ARGSH_FIELD_SEPERATOR"]
