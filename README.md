@@ -34,22 +34,18 @@ sudo chmod +x <your-script-name>
 #!/usr/bin/env argsh
 set -eu -o pipefail
 
-# --- OPTIONS
+# OPTIONS
 # argsh(t|test-option): env(TEST_OPTION) def(false) des(A test option.) val()
 
-# --- ACTIONS
-# argsh(T|test-action):   des(A test action.)
+# ACTIONS
 
-# --- ACTIONS
+# PATHS
 
-# --- PATHS
-: "${PATH_BASE:="$(git rev-parse --show-toplevel)"}"
+# VARIABLES
 
-# --- VARIABLES
+# IMPORTS
 
-# --- IMPORTS
-
-# --- MAIN
+# MAIN
 main() {
   # dependencies
 
@@ -59,14 +55,14 @@ main() {
   esac; done
 }
 
-# --- FUNCTIONS
+# FUNCTIONS
 test_action() {
   echo "$TEST_OPTION"
 }
 
-# --- VALIDATORS
+# VALIDATORS
 
-# --- RUN
+# RUN
 [[ "${0}" != "${BASH_SOURCE[0]}" ]] || main "${@}"
 ```
 
