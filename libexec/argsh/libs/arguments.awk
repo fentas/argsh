@@ -1,4 +1,4 @@
-#!/usr/bin/awk -f
+#!/usr/bin/env awk -f
 
 function options(cmd) {
   print "cmd=\"" cmd "\" opt=\"" $3 "\" val=\"" $5 "\""
